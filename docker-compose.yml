@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+
+  db_customer:
+    image: postgres
+    container_name: db_customer
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${CUSTOMER_DB_USER}
+      POSTGRES_PASSWORD: ${CUSTOMER_DB_PASSWORD}
+      POSTGRES_DB: ${CUSTOMER_DB_NAME}
+    volumes:
+      - customer_db_data:/var/lib/postgresql/data
+    ports:
+      - "${CUSTOMER_DB_PORT}:${DEFAULT_DB_PORT}"
+    networks:
+      - quarkus
+
+  db_product:
+    image: postgres
+    container_name: db_product
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${PRODUCT_DB_USER}
+      POSTGRES_PASSWORD: ${PRODUCT_DB_PASSWORD}
+      POSTGRES_DB: ${PRODUCT_DB_NAME}
+    volumes:
+      - product_db_data:/var/lib/postgresql/data
+    ports:
+      - "${PRODUCT_DB_PORT}:${DEFAULT_DB_PORT}"
+    networks:
+      - quarkus
+
+  db_order:
+    image: postgres
+    container_name: db_order
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${ORDER_DB_USER}
+      POSTGRES_PASSWORD: ${ORDER_DB_PASSWORD}
+      POSTGRES_DB: ${ORDER_DB_NAME}
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    ports:
+      - "${ORDER_DB_PORT}:${DEFAULT_DB_PORT}"
+    networks:
+      - quarkus
+
+  db_keycloak:
+    image: postgres
+    container_name: db_keycloak
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${KEYCLOAK_DB_USER}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      POSTGRES_DB: ${KEYCLOAK_DB_NAME}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    ports:
+      - "${KEYCLOAK_DB_PORT}:${DEFAULT_DB_PORT}"
+    networks:
+      - quarkus
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:17.0.1
+    container_name: keycloak
+#    restart: always
+    env_file:
+      - .env
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_SCHEMA: ${KEYCLOAK_DB_SCHEMA}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_DB_URL_HOST: db_keycloak
+      KC_DB_URL_PORT: ${KEYCLOAK_DB_PORT}
+    ports:
+      - "${KEYCLOAK_HTTP_PORT}:${KEYCLOAK_HTTP_PORT}"
+    networks:
+      - quarkus
+    command: start-dev
+    depends_on:
+      - db_keycloak
+
+networks:
+  quarkus:
+    driver: bridge
+    name: quarkus
+
+volumes:
+  customer_db_data: { }
+  product_db_data: { }
+  order_db_data: { }
+  keycloak_db_data: { }
+  keycloak_data: { }
